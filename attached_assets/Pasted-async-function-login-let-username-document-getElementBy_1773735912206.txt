@@ -1,0 +1,393 @@
+async function login(){
+
+let username =
+document.getElementById("username").value;
+
+let code =
+document.getElementById("accesscode").value;
+
+let res = await fetch("https://script.google.com/macros/s/AKfycbxix4uHCuqw5ugU4vfsNgiJKFWpxcQDgi_gZN2Erx05M-YnR_5b74rJgpox1T_880CH-w/exec");
+
+let data = await res.json();
+let users = data.users;
+
+for(let i=0;i<users.length;i++){
+
+if(
+users[i][0]==username &&
+users[i][1]==code
+){
+
+localStorage.setItem("username",username);
+
+window.location.href="dashboard.html";
+
+return
+
+}
+
+}
+
+alert("Login gagal");
+
+}
+
+async function loadPrograms(){
+
+let username = localStorage.getItem("username")
+
+let res = await fetch("https://script.google.com/macros/s/AKfycbxix4uHCuqw5ugU4vfsNgiJKFWpxcQDgi_gZN2Erx05M-YnR_5b74rJgpox1T_880CH-w/exec")
+
+let data = await res.json()
+
+let users = data.users
+
+let allowedPrograms = []
+
+for(let i=0;i<users.length;i++){
+
+if(users[i][0]==username){
+
+allowedPrograms = users[i][2].split(",")
+
+}
+
+}
+
+let buttons = document.querySelectorAll(".program-container button")
+
+buttons.forEach(btn=>{
+
+let prog = btn.getAttribute("onclick").match(/'(.*?)'/)[1]
+
+if(!allowedPrograms.includes(prog)){
+
+btn.style.display="none"
+
+}
+
+})
+
+}
+
+async function loadProgram(){
+
+let username = localStorage.getItem("username")
+let program = localStorage.getItem("program")
+
+document.getElementById("program-title").innerText = program.toUpperCase()
+
+let url = "https://script.google.com/macros/s/AKfycbxix4uHCuqw5ugU4vfsNgiJKFWpxcQDgi_gZN2Erx05M-YnR_5b74rJgpox1T_880CH-w/exec"
+
+let res = await fetch(url)
+let data = await res.json()
+
+let structure = data.program
+let responses = data.responses
+
+let container = document.getElementById("progress-container")
+
+container.innerHTML=""
+
+let progressList = []
+
+for(let i=1;i<structure.length;i++){
+
+let row = structure[i]
+
+if(row[0]==program){
+
+let progress = row[1]
+
+if(!progressList.includes(progress)){
+progressList.push(progress)
+}
+
+}
+
+}
+
+progressList.forEach(progress=>{
+
+let totalTest = 0
+let approvedTest = 0
+
+structure.forEach(row=>{
+
+if(row[0]==program && row[1]==progress){
+
+if(row[0]==program && row[1]==progress && row[2]=="posttest"){
+totalTest++
+}
+
+}
+
+})
+
+structure.forEach(row=>{
+
+if(
+row[0]==program &&
+row[1]==progress &&
+row[2]=="posttest"   // 🔥 FILTER PENTING
+){
+
+let testName = row[4]
+
+let latestScore = 0
+
+responses.forEach(r=>{
+if(r[4]==username && r[2]==testName){
+latestScore = Number(r[1])
+}
+})
+
+if(latestScore >= 75){
+approvedTest++
+}
+
+}
+
+})
+
+let percent = 0
+
+if(totalTest>0){
+percent = Math.round((approvedTest/totalTest)*100)
+}
+
+let btn = document.createElement("button")
+
+let div = document.createElement("div")
+
+div.innerHTML = `
+<h3>${progress}</h3>
+
+<div class="progress-bar">
+<div class="progress-fill" style="width:${percent}%">
+${percent}%
+</div>
+</div>
+
+<button onclick="openProgress('${progress}')">
+OPEN
+</button>
+`
+
+container.appendChild(div)
+
+btn.onclick=function(){
+openProgress(progress)
+}
+
+container.appendChild(btn)
+
+})
+
+}
+
+function openProgram(program){
+
+localStorage.setItem("program",program)
+
+window.location.href="program.html"
+
+}
+
+function goBack(){
+
+window.location.href="dashboard.html"
+
+}
+
+function logout(){
+
+localStorage.clear()
+
+window.location="index.html"
+
+}
+
+function openProgress(progress){
+
+localStorage.setItem("progress",progress)
+
+window.location.href="progress.html"
+
+}
+
+function loadProgress(){
+
+let progress = localStorage.getItem("progress")
+
+document.getElementById("progress-title").innerText = progress.toUpperCase()
+
+}
+
+function goBackProgram(){
+
+window.location.href="program.html"
+
+}
+
+function backDashboard(){
+
+window.location="dashboard.html"
+
+}
+
+function backProgram(){
+
+window.location="program.html"
+
+}
+
+function openTest(group){
+
+localStorage.setItem("testGroup", group)
+
+window.location.href = "test.html"
+
+}
+
+async function loadTest(){
+
+let program = localStorage.getItem("program")
+let progress = localStorage.getItem("progress")
+let group = localStorage.getItem("testGroup")
+let username = localStorage.getItem("username")
+
+let url = "https://script.google.com/macros/s/AKfycbxix4uHCuqw5ugU4vfsNgiJKFWpxcQDgi_gZN2Erx05M-YnR_5b74rJgpox1T_880CH-w/exec"
+
+let res = await fetch(url)
+let data = await res.json()
+
+let structure = data.program
+let responses = data.responses
+
+let container = document.getElementById("form-container")
+
+container.innerHTML = ""
+
+let previousPassed = true
+
+for(let i=1;i<structure.length;i++){
+
+let row = structure[i]
+
+if(
+row[0] == program &&
+row[1] == progress &&
+row[2] == group
+){
+
+let testName = row[4]
+
+let latestScore = 0
+
+responses.forEach(r=>{
+
+if(
+r[4] == username &&
+r[2] == testName
+){
+
+latestScore = r[1]
+
+}
+
+})
+
+let btn = document.createElement("button")
+
+btn.innerText = testName
+
+btn.onclick = function(){
+
+window.open(row[5],"_blank")
+
+}
+
+if(!previousPassed){
+
+btn.disabled = true
+
+}
+
+container.appendChild(btn)
+
+if(group == "posttest"){
+
+if(latestScore >= 75){
+
+previousPassed = true
+
+}else{
+
+previousPassed = false
+
+}
+
+}
+
+}
+
+}
+
+}
+
+async function openQuiz(){
+
+let program = localStorage.getItem("program")
+let progress = localStorage.getItem("progress")
+let testType = localStorage.getItem("testType")
+
+let url = "https://script.google.com/macros/s/AKfycbxix4uHCuqw5ugU4vfsNgiJKFWpxcQDgi_gZN2Erx05M-YnR_5b74rJgpox1T_880CH-w/exec"
+
+let res = await fetch(url)
+let data = await res.json()
+
+let programData = data.program
+
+for(let i=0;i<programData.length;i++){
+
+let row = programData[i]
+
+if(row[0]==program && row[1]==progress){
+
+if(testType=="pretest"){
+window.open(row[4],"_blank")
+}
+
+if(testType=="posttest"){
+window.open(row[5],"_blank")
+}
+
+}
+
+}
+
+}
+function loadTestTitle(){
+
+let group = localStorage.getItem("testGroup")
+
+let title = ""
+
+if(group=="pretest"){
+title = "PRE TEST"
+}
+
+if(group=="posttest"){
+title = "POST TEST"
+}
+
+document.getElementById("test-title").innerText = title
+
+}
+function loadTestPage(){
+
+loadTestTitle()
+loadTest()
+
+}

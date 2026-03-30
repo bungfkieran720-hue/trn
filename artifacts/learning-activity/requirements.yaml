@@ -1,0 +1,15 @@
+packages:
+  "framer-motion": "For page transitions and smooth layout animations to create a premium feel"
+  "clsx": "Utility for constructing className strings conditionally"
+  "tailwind-merge": "Utility to merge tailwind classes safely"
+
+images:
+  - path: "artifacts/learning-activity/public/images/login-bg.png"
+    description: "A soft, abstract gradient mesh background in elegant teal, cyan, and deep blue colors with smooth, flowing blurred shapes. Clean, modern, professional, minimalist."
+    aspect_ratio: "16:9"
+
+notes:
+  - No backend server required. Data is fetched directly from the provided Google Apps Script URL.
+  - Apps Script returns JSON with `users`, `program`, and `responses` 2D arrays.
+  - State management uses localStorage to persist session and navigation path.
+  - React Query is used for caching the Apps Script payload to avoid excessive network requests.
